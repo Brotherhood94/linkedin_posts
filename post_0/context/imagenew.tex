@@ -1,0 +1,161 @@
+% ---------------------------------------------------------------
+%  Minimal preamble – compile with pdflatex or lualatex
+% ---------------------------------------------------------------
+\documentclass{article}
+%% -----------------------------------------------------------------------
+%% Packages
+%% -----------------------------------------------------------------------
+\usepackage{quantikz}          % quantum circuit diagrams
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{matrix,decorations.pathreplacing}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{adjustbox}
+\usepackage{subcaption}
+
+
+
+%% -----------------------------------------------------------------------
+%% Colors for the skyscraper visualization (Section 3)
+%% -----------------------------------------------------------------------
+\definecolor{matrixblue}{RGB}{0, 90, 180}
+\definecolor{matrixfill}{RGB}{225, 235, 245}
+\definecolor{matrixred}{RGB}{200, 40, 40}
+\definecolor{matrixfillred}{RGB}{255, 240, 240}
+\definecolor{matrixgreen}{RGB}{40, 150, 40}      % Modificato
+\definecolor{matrixfillgreen}{RGB}{240, 255, 240} % Modificato
+%% -----------------------------------------------------------------------
+%% Custom commands
+%% -----------------------------------------------------------------------
+% \ket, \bra, \braket are already provided by the LIPIcs class.
+% Redefine only if the class does not provide them (use \providecommand).
+\providecommand{\ket}[1]{\lvert #1 \rangle}
+\providecommand{\bra}[1]{\langle #1 \rvert}
+\providecommand{\braket}[2]{\langle #1 \mid #2 \rangle}
+\newcommand{\norm}[1]{\left\| #1 \right\|}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\poly}{\mathrm{poly}}
+\newcommand{\polylog}{\mathrm{polylog}}
+\newcommand{\SP}{\mathcal{SP}}        % state-preparation operator
+\newcommand{\MSP}{\mathcal{MSP}} % state-preparation operator
+\newcommand{\OP}{\mathcal{OP}}        % composite operator
+\newcommand{\Id}{\mathbb{I}}         % identity operator
+
+% ----------------------------------------------------------------
+
+\begin{document}
+\begin{figure}[t]
+  \centering
+
+  %% ---- (a) K odd ----
+  \begin{minipage}[b]{0.48\linewidth}
+    \centering
+    % 1) typeset the circuit into a box -- completely outside tikzpicture
+    \newsavebox{\circOdd}%
+    \sbox{\circOdd}{%
+      \resizebox{\linewidth}{!}{%
+        \begin{quantikz}[wire types={b,b,b,b,b,b,b,b}, classical gap=0.07cm]
+                \lstick{$\ket{0}^{r_{\frac{K-1}{2}}}$} & \gate[wires=2]{\mathrm{SP}(M^{(K-1)})}\gategroup[8,steps=1,style={inner sep=1pt}, label style={yshift=-9.5cm}]{$\OP(L)$} & \gate[style={inner sep=2pt}]{\mathbb{I}_{R_{\frac{K-1}{2}}}}\gategroup[8,steps=1,style={inner sep=1pt}, label style={yshift=-9.5cm}]{$\OP(R)$} & \qw \\
+                \lstick{$\ket{0}^{l_{\frac{K-1}{2}}}$} & \qw & \gate[wires=2]{\mathrm{SP}(M^{(K-2)})^{\dagger}} & \qw \\
+                \lstick{$\ket{0}^{r_{\frac{K-1}{2}-1}}$} & \qw & \qw & \qw \\
+                & \wave & \wave & \\
+                \lstick{$\ket{0}^{r_1}$}
+                & \gate[wires=2]{\mathrm{SP}(M^{(2)})} & \qw & \qw \\
+                \lstick{$\ket{0}^{l_1}$} & \qw & \gate[wires=2]{\mathrm{SP}(M^{(1)})^{\dagger}} & \qw \\
+                \lstick{$\ket{0}^{r_0}$} & \gate[wires=2]{\mathrm{SP}(M^{(0)})} & \qw & \qw \\
+                \lstick{$\ket{0}^{l_0}$} & \qw & \gate[style={inner sep=2pt}]{\mathbb{I}_{L_0}} & \qw
+        \end{quantikz}}%
+    }%
+    % 2) place the finished box inside tikzpicture -- no nesting, no extra groups
+    \begin{tikzpicture}
+      \node[inner sep=0pt, outer sep=0pt] (circ) {\usebox{\circOdd}};
+      \begin{scope}[
+          shift={(circ.south west)},
+          x    ={($(circ.south east)-(circ.south west)$)},
+          y    ={($(circ.north west)-(circ.south west)$)}]
+        % [0,1]x[0,1] coordinate frame -- add annotations here
+
+        \fill[white, opacity=1 ] (0.3, 0.75) rectangle (0.55, 0.65);
+        \node at (0.425, 0.66){\scalebox{0.65}{$\mathrm{SP}(M^{(K-3)})$}};
+        \draw[black, semithick] (0.3, 0.605) -- (0.3, 0.75) -- (0.55, 0.75) -- (0.55, 0.606);
+
+        \fill[white, opacity=1] (0.65, 0.45) rectangle (0.9, 0.55);
+        \node at (0.775, 0.54){\scalebox{0.65}{$\mathrm{SP}(M^{(3)})^{\dagger}$}};
+        \draw[black, semithick] (0.65, 0.595) -- (0.65, 0.45) -- (0.9, 0.45) -- (0.9, 0.595);
+                
+      
+      \end{scope}
+    \end{tikzpicture}
+    \subcaption{$K$ odd.}
+    \label{fig:circuit-K-odd}
+  \end{minipage}
+  \hfill
+  %% ---- (b) K even ----
+  \begin{minipage}[b]{0.48\linewidth}
+    \centering
+    \newsavebox{\circEven}%
+    \sbox{\circEven}{%
+      \resizebox{\linewidth}{!}{%
+        \begin{quantikz}[wire types={b,b,b,b,b,b,b,b}, classical gap=0.07cm]
+                \lstick{$\ket{0}^{l_{\frac{K}{2}}}$} & \gate[style={inner sep=2pt}]{\mathbb{I}_{L_{\frac{K}{2}}}}\gategroup[8,steps=1,style={inner sep=1pt}, label style={yshift=-9.5cm}]{$\OP(L)$} & \gate[wires=2]{\MSP(M^{(K-1)})}\gategroup[8,steps=1,style={inner sep=1pt}, label style={yshift=-9.5cm}]{$\OP(R)$} & \qw \\
+                \lstick{$\ket{0}^{r_{\frac{K}{2}-1}}$} & \gate[wires=2]{\mathrm{SP}(M^{(K-2)})} & \qw & \qw \\
+                \lstick{$\ket{0}^{l_{\frac{K}{2}-1}}$} & \qw & \qw & \qw \\
+                & \wave & \wave & \\
+                \lstick{$\ket{0}^{r_1}$}
+                & \gate[wires=2]{\mathrm{SP}(M^{(2)})} & \qw & \qw \\
+                \lstick{$\ket{0}^{l_1}$} & \qw & \gate[wires=2]{\mathrm{SP}(M^{(1)})^{\dagger}} & \qw \\
+                \lstick{$\ket{0}^{r_0}$} & \gate[wires=2]{\mathrm{SP}(M^{(0)})} & \qw & \qw \\
+                \lstick{$\ket{0}^{l_0}$} & \qw & \gate[style={inner sep=2pt}]{\mathbb{I}_{L_0}} & \qw
+        \end{quantikz}}%
+    }%
+    \begin{tikzpicture}
+      \node[inner sep=0pt, outer sep=0pt] (circ) {\usebox{\circEven}};
+      \begin{scope}[
+          shift={(circ.south west)},
+          x    ={($(circ.south east)-(circ.south west)$)},
+          y    ={($(circ.north west)-(circ.south west)$)}]
+        % [0,1]x[0,1] coordinate frame -- add annotations here
+         
+         \fill[white, opacity=1] (0.63, 0.75) rectangle (0.88, 0.63);
+        \node at (0.755, 0.675){\scalebox{0.6}{$\mathrm{SP}(M^{(K-3)})^{\dagger}$}};
+        \draw[black, semithick] (0.63, 0.62) -- (0.63, 0.75) -- (0.88, 0.75) -- (0.88, 0.62);
+
+        \fill[white, opacity=1] (0.63, 0.45) rectangle (0.88, 0.55);
+        \node at (0.75, 0.54){\scalebox{0.7}{$\mathrm{SP}(M^{(3)})^{\dagger}$}};
+        \draw[black, semithick] (0.63, 0.595) -- (0.63, 0.45) -- (0.88, 0.45) -- (0.88, 0.595);
+
+
+\draw[red, thick] 
+    (0.2, 0.08) -- % Vertex 1 (Left-middle)
+    (0.2, 0.875) -- % Vertex 2 (Top-left)
+    (0.55, 0.875) -- % Vertex 3 (Top-right)
+    (0.55, 0.765) -- % Vertex 4 (Right-middle)
+    (0.91, 0.765) -- % Vertex 5 (Bottom-right)
+    (0.91, 0.08) -- % Vertex 6 (Bottom-left)
+    cycle;          % Closes the shape back to Vertex 1
+        
+      \end{scope}
+    \end{tikzpicture}
+    \subcaption{$K$ even.}
+    \label{fig:circuit-K-even}
+  \end{minipage}
+  \caption{Skyscraper circuit for a chain of $K$ matrices.
+    \textbf{(a)}~$K$ odd: registers are ordered top-to-bottom as
+    $(r_{(K-1)/2},\, l_{(K-1)/2},\, \ldots,\, r_0,\, l_0)$.
+    $\OP(L)$: all $\SP(M^{(2i)})$ act simultaneously on
+    disjoint register pairs $(r_i, l_i)$.
+    $\OP(R)$: all $\SP(M^{(2j+1)})^\dagger$ act simultaneously
+    on the interleaved pairs $(l_{j+1}, r_j)$.
+    \textbf{(b)}~$K$ even: an additional output register $p_K$
+    appears at the top.
+    The last matrix $M^{(K-1)}$ uses the $\MSP$ state preparation
+    (denoted $\MSP(M^{(K-1)})$), which acts on
+    $(p_K,\, r_{K/2-1})$ within $\OP(R)$. \hl{check indexes}}
+  \label{fig:circuit-K}
+\end{figure}
+
+\end{document}
